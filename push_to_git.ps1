@@ -12,6 +12,35 @@ if (-not (Test-Path ".git")) {
     exit 1
 }
 
+# 等待用户选择是否自定义提交消息
+Write-Host "是否自定义提交消息？按 Y 自定义，其他键或等待3秒将使用默认消息: '$Message'" -ForegroundColor Cyan
+$customMessage = $false
+$timeoutSeconds = 3
+$startTime = Get-Date
+
+while (((Get-Date) - $startTime).TotalSeconds -lt $timeoutSeconds) {
+    if ([Console]::KeyAvailable) {
+        $key = [Console]::ReadKey($true).Key
+        if ($key -eq 'Y' -or $key -eq 'y') {
+            $customMessage = $true
+            break
+        } else {
+            break
+        }
+    }
+    Start-Sleep -Milliseconds 100
+}
+
+if ($customMessage) {
+    Write-Host "请输入提交消息 (直接回车使用默认): " -ForegroundColor Yellow -NoNewline
+    $userMessage = Read-Host
+    if (-not [string]::IsNullOrWhiteSpace($userMessage)) {
+        $Message = $userMessage
+    }
+} else {
+    Write-Host "使用默认提交消息: $Message" -ForegroundColor Green
+}
+
 # 添加所有更改
 Write-Host "正在添加所有更改..."
 git add .
